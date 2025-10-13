@@ -130,7 +130,7 @@
 
     async function fetchData(machine = "C2") {
       try {
-        const res = await fetch(`http://127.0.0.1:6060/data?machine=${machine}`);
+        const res = await fetch(`http://192.168.10.205:6060/data?machine=${machine}`);
         return res.ok ? await res.json() : {};
       } catch (err) {
         console.error("Fetch error:", err);
