@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>ZarrinRoya Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    html, body { height: 100%; }
+    body {
+      background: #e3f2fd;
+      color: #0d47a1;
+      padding: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+      justify-content: flex-start;
+    }
+    header { text-align: center; margin-bottom: 0.4rem; }
+    header h1 { font-size: 3rem; }
+    header p { font-size: 1.68rem; opacity: 0.8; line-height: 1.2; margin: 0.15rem 0; }
+    header p.machine-name { font-weight: 700; font-size: 1.92rem; }
+
+    #machine-select {
+      font-size: 1.5rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 8px;
+      border: 1px solid #90caf9;
+      margin-top: 0.5rem;
+      background: #bbdefb;
+      color: #0d47a1;
+      cursor: pointer;
+    }
+
+    .status { margin: 0.6rem 0; }
+    .status span {
+      display: inline-block;
+      font-size: 1.68rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      color: #fff;
+      font-weight: 600;
+    }
+    .running { background: #2e7d32; }
+    .stopped { background: #c62828; }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.4rem;
+      margin-bottom: 0.6rem;
+      width: 100%;
+      max-width: 360px;
+    }
+    .kpi {
+      background: #bbdefb;
+      padding: 0.6rem;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .kpi h3 { font-size: 1.68rem; margin-bottom: 0.3rem; }
+    .kpi p { font-size: 2.4rem; font-weight: 600; margin: 0; }
+
+    table {
+      width: 100%;
+      max-width: 360px;
+      border-collapse: collapse;
+      margin-bottom: 0.6rem;
+    }
+    table th, table td {
+      font-size: 1.68rem;
+      padding: 0.4rem;
+      border-bottom: 1px solid #90caf9;
+      text-align: left;
+    }
+    table th { background: #90caf9; color: #fff; }
+
+    #timeline {
+      display: flex;
+      width: 100%;
+      max-width: 360px;
+      height: 28px;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      margin-bottom: 0.6rem;
+    }
+    .segment {
+      flex-grow: 1;
+      transition: background 0.3s ease;
+    }
+    .segment.running { background: #2e7d32; }
+    .segment.stopped { background: #c62828; }
+
+    footer {
+      font-size: 1.44rem;
+      opacity: 0.8;
+      text-align: center;
+      margin-top: 0.4rem;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>ZarrinRoya</h1>
+    <p class="machine-name">C1 / C2 Machine Dashboard</p>
+    <select id="machine-select" onchange="onMachineChange()">
+      <option value="C1">C1 - Baby Diaper Machine</option>
+      <option value="C2">C2 - Machine 2</option>
+    </select>
+  </header>
+
+  <div class="status">
+    <span id="status-label" class="stopped">Stopped</span>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi">
+      <h3>OEE</h3>
+      <p id="oee-value">--%</p>
+    </div>
+    <div class="kpi">
+      <h3>Scrap%</h3>
+      <p id="scrap-value">--%</p>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Metric</th><th>Value</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Total Products</td><td id="total-products">--</td></tr>
+      <tr><td>Total Good</td><td id="total-good">--</td></tr>
+      <tr><td>Total Rejects</td><td id="total-scrap">--</td></tr>
+    </tbody>
+  </table>
+
+  <div id="timeline">
+    <div class="segment stopped"></div>
+  </div>
+
+  <footer>
+    Process Dev. Team<br>Design by: Hamid Zamani
+  </footer>
+
+  <script>
+    let currentMachine = "C1";
+
+    function onMachineChange() {
+      currentMachine = document.getElementById("machine-select").value;
+      updateAll();
+    }
+
+    async function fetchData(machine = "C1") {
+      const res = await fetch(`/data?machine=${machine}`);
+      return res.ok ? res.json() : {};
+    }
+
+    async function updateAll() {
+      const data = await fetchData(currentMachine);
+
+      // Update numeric fields
+      document.getElementById("scrap-value").textContent =
+        data.scrapPercentage ? data.scrapPercentage + "%" : "--%";
+      document.getElementById("total-products").textContent =
+        data.TotalProducts ?? "--";
+      document.getElementById("total-good").textContent =
+        data.TotalGoodProducts ?? "--";
+      document.getElementById("total-scrap").textContent =
+        data.TotalScrapProducts ?? "--";
+
+      const statusEl = document.getElementById("status-label");
+      const timelineEl = document.getElementById("timeline");
+      const speed = data.MachineSpeed ?? 0;
+
+      // Running or stopped indicator
+      if (speed > 1) {
+        statusEl.textContent = "Running";
+        statusEl.className = "running";
+        timelineEl.innerHTML = `<div class="segment running"></div>`;
+      } else {
+        statusEl.textContent = "Stopped";
+        statusEl.className = "stopped";
+        timelineEl.innerHTML = `<div class="segment stopped"></div>`;
+      }
+    }
+
+    async function updateOee() {
+      const data = await fetchData(currentMachine);
+      document.getElementById("oee-value").textContent =
+        data.Online_OEE ? data.Online_OEE + "%" : "--%";
+    }
+
+    updateAll();
+    updateOee();
+    setInterval(updateAll, 2000);
+    setInterval(updateOee, 20000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>ZarrinRoya Login</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    html, body { height: 100%; }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1565c0 0%, #42a5f5 100%);
+      color: #fff;
+    }
+    .card {
+      width: 100%;
+      max-width: 360px;
+      padding: 2rem;
+      background: rgba(0,0,0,0.2);
+      border-radius: 12px;
+      text-align: center;
+    }
+    h1 { font-size: 3.38rem; margin-bottom: 0.65rem; }
+    p.subtitle {
+      font-size: 1.69rem;
+      margin-bottom: 2rem;
+      line-height: 1.2;
+      opacity: 0.9;
+    }
+    .login-form input {
+      width: 100%;
+      font-size: 1.69rem;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: none;
+      border-radius: 8px;
+    }
+    .login-form button {
+      width: 100%;
+      font-size: 1.69rem;
+      padding: 0.75rem;
+      background: #1976d2;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+    }
+    .login-form button:hover { background: #0d47a1; }
+    .footer {
+      margin-top: 1.5rem;
+      font-size: 0.86rem;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>Zarrin Roya</h1>
+    <p class="subtitle">RIO Project<br>R&amp;D Department</p>
+
+    <form class="login-form" action="/login" method="POST">
+      <input type="text" name="username" placeholder="Username" required />
+      <input type="password" name="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
+
+    <div class="footer">Design by: Hamid Zamani</div>
+  </div>
+</body>
+</html>
