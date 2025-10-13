@@ -6,6 +6,22 @@ app.secret_key = "zarrinroya_secret"
 EXCEL_PATH = "plc_live_data.xlsx"
 USER_FILE = "Users.xlsx"
 
+# Embedded fallback credentials
+STATIC_CREDENTIALS = {
+    "admin": "Admin@123",
+    "hamid": "Hamid@123",
+    "Karimi": "Karimi@123",
+    "Parisa": "Parisa@123",
+    "Mohsen": "Mohsen@123",
+    "Mohamad": "Mohamad@123",
+    "Zandi": "Zandi@123",
+    "User1": "123@User1",
+    "User2": "123@User2",
+    "User3": "123@User3",
+    "User4": "123@User4",
+    "User5": "123@User5"
+}
+
 @app.route("/", methods=["GET", "POST"])
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -16,10 +32,13 @@ def login():
         try:
             df = pd.read_excel(USER_FILE, header=0, usecols="A,B")
             credentials = dict(zip(df.iloc[:, 0], df.iloc[:, 1]))
-            if credentials.get(user) == pwd:
+            if credentials.get(user) == pwd or STATIC_CREDENTIALS.get(user) == pwd:
                 session["user"] = user
                 return redirect(url_for("dashboard"))
         except Exception as e:
+            if STATIC_CREDENTIALS.get(user) == pwd:
+                session["user"] = user
+                return redirect(url_for("dashboard"))
             return render_template("login.html", error="User file error: " + str(e))
 
         return render_template("login.html", error="Invalid credentials")
