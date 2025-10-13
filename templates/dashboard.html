@@ -19,8 +19,7 @@
     }
     header { text-align: center; margin-bottom: 0.32rem; }
     header h1 { font-size: 2.4rem; }
-    header p { font-size: 1.34rem; opacity: 0.8; line-height: 1.2; margin: 0.12rem 0; }
-    header p.machine-name { font-weight: 700; font-size: 1.54rem; }
+    header p.machine-name { font-weight: 700; font-size: 1.54rem; margin-top: 0.2rem; }
 
     .status { margin: 0.48rem 0; }
     .status span {
@@ -132,15 +131,13 @@
   </footer>
 
   <script>
-    let currentMachine = "C1";
-
-    async function fetchData(machine = "C1") {
-      const res = await fetch(`/data?machine=${machine}`);
+    async function fetchData() {
+      const res = await fetch("http://localhost:5050/data");
       return res.ok ? res.json() : {};
     }
 
     async function updateAll() {
-      const data = await fetchData(currentMachine);
+      const data = await fetchData();
 
       document.getElementById("scrap-value").textContent =
         data.scrapPercentage ? data.scrapPercentage + "%" : "--%";
@@ -150,6 +147,8 @@
         data.TotalGoodProducts ?? "--";
       document.getElementById("total-scrap").textContent =
         data.TotalScrapProducts ?? "--";
+      document.getElementById("oee-value").textContent =
+        data.Online_OEE ? data.Online_OEE + "%" : "--%";
 
       const statusEl = document.getElementById("status-label");
       const timelineEl = document.getElementById("timeline");
@@ -164,9 +163,6 @@
         statusEl.className = "stopped";
         timelineEl.innerHTML = `<div class="segment stopped"></div>`;
       }
-
-      document.getElementById("oee-value").textContent =
-        data.Online_OEE ? data.Online_OEE + "%" : "--%";
     }
 
     updateAll();
