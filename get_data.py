@@ -20,26 +20,15 @@ TAGS = {
     "MachineSpeed": 132
 }
 
-CELL_MAP = {
-    "C1": {
-        "TotalWorktime": "B2",
-        "TotalProducts": "B3",
-        "TotalGoodProducts": "B4",
-        "TotalScrapProducts": "B5",
-        "MachineSpeed": "B6",
-        "Scrap_Percentage": "B7",
-        "OEE": "B8"
-    },
-    "C2": {
-        "TotalWorktime": "C2",
-        "TotalProducts": "C3",
-        "TotalGoodProducts": "C4",
-        "TotalScrapProducts": "C5",
-        "MachineSpeed": "C6",
-        "Scrap_Percentage": "C7",
-        "OEE": "C8"
-    }
-}
+LABELS = [
+    "TotalWorktime",
+    "TotalProducts",
+    "TotalGoodProducts",
+    "TotalScrapProducts",
+    "MachineSpeed",
+    "Scrap_Percentage",
+    "OEE"
+]
 
 def read_dint(db_data, offset):
     return int.from_bytes(db_data[offset:offset+4], byteorder='big', signed=True)
@@ -62,18 +51,27 @@ def init_excel():
     wb = Workbook()
     ws = wb.active
     ws.title = "LiveData"
-    for prefix in DBS:
-        for tag, cell in CELL_MAP[prefix].items():
-            ws[cell] = f"{prefix}_{tag}"  # Label headers
+
+    # Write labels in column A
+    for i, label in enumerate(LABELS, start=1):
+        ws.cell(row=i, column=1, value=label)
+
     wb.save(EXCEL_PATH)
 
 def write_to_excel(values):
     wb = load_workbook(EXCEL_PATH)
     ws = wb["LiveData"]
-    for prefix, data in values.items():
-        for tag, value in data.items():
-            cell = CELL_MAP[prefix][tag]
-            ws[cell] = value
+
+    for col_index, prefix in enumerate(DBS.keys(), start=2):  # B=2, C=3
+        data = values[prefix]
+        scrap_pct, oee = calculate_metrics(data)
+        data["Scrap_Percentage"] = scrap_pct
+        data["OEE"] = oee
+
+        for row_index, label in enumerate(LABELS, start=1):
+            value = data.get(label, "")
+            ws.cell(row=row_index, column=col_index, value=value)
+
     wb.save(EXCEL_PATH)
 
 def main():
@@ -85,11 +83,9 @@ def main():
         all_values = {}
         for prefix, db_num in DBS.items():
             raw = read_tags(client, db_num)
-            scrap_pct, oee = calculate_metrics(raw)
-            raw["Scrap_Percentage"] = scrap_pct
-            raw["OEE"] = oee
             all_values[prefix] = raw
 
+            scrap_pct, oee = calculate_metrics(raw)
             print(f"{prefix} →", {k: raw[k] for k in TAGS})
             print(f"{prefix} Scrap%: {scrap_pct:.2f}, OEE: {oee:.2f}")
 

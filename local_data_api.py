@@ -1,27 +1,39 @@
-from flask import Flask, jsonify, request
-import pandas as pd
+from flask import Flask, request, jsonify
+from openpyxl import load_workbook
+from flask_cors import CORS
+
+EXCEL_PATH = "plc_live_data.xlsx"
+LABELS = [
+    "TotalWorktime",
+    "TotalProducts",
+    "TotalGoodProducts",
+    "TotalScrapProducts",
+    "MachineSpeed",
+    "Scrap_Percentage",
+    "OEE"
+]
 
 app = Flask(__name__)
-EXCEL_PATH = "plc_live_data.xlsx"
+CORS(app)
 
 @app.route("/data")
-def data():
+def get_data():
     machine = request.args.get("machine", "C1")
+    col = 1 if machine == "C1" else 2  # Column B = 1, Column C = 2
+
     try:
-        df = pd.read_excel(EXCEL_PATH, header=None)
-        col = 1 if machine == "C1" else 2
-        values = {
-            "TotalWorktime": df.at[1, col],
-            "TotalProducts": df.at[2, col],
-            "TotalGoodProducts": df.at[3, col],
-            "TotalScrapProducts": df.at[4, col],
-            "MachineSpeed": df.at[5, col],
-            "scrapPercentage": df.at[6, col],
-            "Online_OEE": df.at[7, col]
-        }
+        wb = load_workbook(EXCEL_PATH, data_only=True)
+        ws = wb.active
+
+        result = {}
+        for row_index, label in enumerate(LABELS, start=1):
+            value = ws.cell(row=row_index, column=col + 1).value  # openpyxl is 1-based
+            result[label] = value
+
+        return jsonify(result)
+
     except Exception as e:
-        values = {"error": str(e)}
-    return jsonify(values)
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(port=5050, debug=True)
+    app.run(port=6060, debug=True)

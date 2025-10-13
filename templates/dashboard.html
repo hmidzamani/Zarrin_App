@@ -2,77 +2,68 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>ZarrinRoya Dashboard</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-    html, body { height: 100%; }
     body {
+      font-family: 'Segoe UI', sans-serif;
       background: #e3f2fd;
       color: #0d47a1;
-      padding: 0.64rem;
+      padding: 1rem;
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow-x: hidden;
-      justify-content: flex-start;
     }
-    header { text-align: center; margin-bottom: 0.32rem; }
-    header h1 { font-size: 2.4rem; }
-    header p.machine-name { font-weight: 700; font-size: 1.54rem; margin-top: 0.2rem; }
-
-    .status { margin: 0.48rem 0; }
-    .status span {
-      display: inline-block;
-      font-size: 1.34rem;
-      padding: 0.32rem 0.64rem;
+    h1 { font-size: 2rem; margin-bottom: 0.2rem; }
+    select {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      padding: 0.3rem;
       border-radius: 6px;
-      color: #fff;
-      font-weight: 600;
+      background: #bbdefb;
+      border: 1px solid #90caf9;
+      color: #0d47a1;
+    }
+    .status span {
+      font-weight: bold;
+      font-size: 1.2rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      color: white;
     }
     .running { background: #2e7d32; }
     .stopped { background: #c62828; }
-
     .kpis {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.32rem;
-      margin-bottom: 0.48rem;
-      width: 100%;
-      max-width: 288px;
+      display: flex;
+      gap: 1rem;
+      margin: 1rem 0;
     }
     .kpi {
       background: #bbdefb;
-      padding: 0.48rem;
+      padding: 0.5rem;
       border-radius: 6px;
       text-align: center;
+      width: 120px;
     }
-    .kpi h3 { font-size: 1.34rem; margin-bottom: 0.24rem; }
-    .kpi p { font-size: 1.92rem; font-weight: 600; margin: 0; }
-
+    .kpi h3 { margin-bottom: 0.3rem; }
+    .kpi p { font-size: 1.5rem; font-weight: bold; }
     table {
-      width: 100%;
-      max-width: 288px;
       border-collapse: collapse;
-      margin-bottom: 0.48rem;
+      margin-bottom: 1rem;
+      width: 300px;
     }
-    table th, table td {
-      font-size: 1.34rem;
-      padding: 0.32rem;
+    th, td {
       border-bottom: 1px solid #90caf9;
+      padding: 0.4rem;
       text-align: left;
     }
-    table th { background: #90caf9; color: #fff; }
-
+    th { background: #90caf9; color: white; }
     #timeline {
       display: flex;
-      width: 100%;
-      max-width: 288px;
-      height: 22px;
+      width: 300px;
+      height: 20px;
       border-radius: 6px;
       overflow: hidden;
-      cursor: pointer;
-      margin-bottom: 0.48rem;
+      margin-bottom: 1rem;
     }
     .segment {
       flex-grow: 1;
@@ -80,21 +71,20 @@
     }
     .segment.running { background: #2e7d32; }
     .segment.stopped { background: #c62828; }
-
     footer {
-      font-size: 0.86rem;
-      opacity: 0.8;
+      font-size: 0.8rem;
+      opacity: 0.7;
       text-align: center;
-      margin-top: 0.32rem;
     }
   </style>
 </head>
-
 <body>
-  <header>
-    <h1>ZarrinRoya</h1>
-    <p class="machine-name">Machines Dashboard</p>
-  </header>
+  <h1>ZarrinRoya</h1>
+  <p><strong>Machines Dashboard</strong></p>
+  <select id="machine-select" onchange="onMachineChange()">
+    <option value="C1">C1 - Baby Diaper Machine</option>
+    <option value="C2" selected>C2 - Machine 2</option>
+  </select>
 
   <div class="status">
     <span id="status-label" class="stopped">Stopped</span>
@@ -131,16 +121,28 @@
   </footer>
 
   <script>
-    async function fetchData() {
-      const res = await fetch("http://localhost:5050/data");
-      return res.ok ? res.json() : {};
+    let currentMachine = "C2";
+
+    function onMachineChange() {
+      currentMachine = document.getElementById("machine-select").value;
+      updateAll();
+    }
+
+    async function fetchData(machine = "C2") {
+      try {
+        const res = await fetch(`http://127.0.0.1:6060/data?machine=${machine}`);
+        return res.ok ? await res.json() : {};
+      } catch (err) {
+        console.error("Fetch error:", err);
+        return {};
+      }
     }
 
     async function updateAll() {
-      const data = await fetchData();
+      const data = await fetchData(currentMachine);
 
       document.getElementById("scrap-value").textContent =
-        data.scrapPercentage ? data.scrapPercentage + "%" : "--%";
+        data.Scrap_Percentage ? data.Scrap_Percentage + "%" : "--%";
       document.getElementById("total-products").textContent =
         data.TotalProducts ?? "--";
       document.getElementById("total-good").textContent =
@@ -148,25 +150,19 @@
       document.getElementById("total-scrap").textContent =
         data.TotalScrapProducts ?? "--";
       document.getElementById("oee-value").textContent =
-        data.Online_OEE ? data.Online_OEE + "%" : "--%";
+        data.OEE ? data.OEE + "%" : "--%";
 
       const statusEl = document.getElementById("status-label");
-      const timelineEl = document.getElementById("timeline");
-      const speed = data.MachineSpeed ?? 0;
+      const timelineEl = document.querySelector(".segment");
 
-      if (speed > 1) {
-        statusEl.textContent = "Running";
-        statusEl.className = "running";
-        timelineEl.innerHTML = `<div class="segment running"></div>`;
-      } else {
-        statusEl.textContent = "Stopped";
-        statusEl.className = "stopped";
-        timelineEl.innerHTML = `<div class="segment stopped"></div>`;
-      }
+      const isRunning = data.MachineSpeed && data.MachineSpeed > 0;
+      statusEl.textContent = isRunning ? "Running" : "Stopped";
+      statusEl.className = isRunning ? "running" : "stopped";
+      timelineEl.className = "segment " + (isRunning ? "running" : "stopped");
     }
 
     updateAll();
-    setInterval(updateAll, 5000);
+    setInterval(updateAll, 2000); // Update every 2 seconds
   </script>
 </body>
 </html>
