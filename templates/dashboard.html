@@ -10,35 +10,24 @@
     body {
       background: #e3f2fd;
       color: #0d47a1;
-      padding: 0.8rem;
+      padding: 0.64rem;
       display: flex;
       flex-direction: column;
       align-items: center;
       overflow-x: hidden;
       justify-content: flex-start;
     }
-    header { text-align: center; margin-bottom: 0.4rem; }
-    header h1 { font-size: 3rem; }
-    header p { font-size: 1.68rem; opacity: 0.8; line-height: 1.2; margin: 0.15rem 0; }
-    header p.machine-name { font-weight: 700; font-size: 1.92rem; }
+    header { text-align: center; margin-bottom: 0.32rem; }
+    header h1 { font-size: 2.4rem; }
+    header p { font-size: 1.34rem; opacity: 0.8; line-height: 1.2; margin: 0.12rem 0; }
+    header p.machine-name { font-weight: 700; font-size: 1.54rem; }
 
-    #machine-select {
-      font-size: 1.5rem;
-      padding: 0.3rem 0.8rem;
-      border-radius: 8px;
-      border: 1px solid #90caf9;
-      margin-top: 0.5rem;
-      background: #bbdefb;
-      color: #0d47a1;
-      cursor: pointer;
-    }
-
-    .status { margin: 0.6rem 0; }
+    .status { margin: 0.48rem 0; }
     .status span {
       display: inline-block;
-      font-size: 1.68rem;
-      padding: 0.4rem 0.8rem;
-      border-radius: 8px;
+      font-size: 1.34rem;
+      padding: 0.32rem 0.64rem;
+      border-radius: 6px;
       color: #fff;
       font-weight: 600;
     }
@@ -48,29 +37,29 @@
     .kpis {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 0.4rem;
-      margin-bottom: 0.6rem;
+      gap: 0.32rem;
+      margin-bottom: 0.48rem;
       width: 100%;
-      max-width: 360px;
+      max-width: 288px;
     }
     .kpi {
       background: #bbdefb;
-      padding: 0.6rem;
-      border-radius: 8px;
+      padding: 0.48rem;
+      border-radius: 6px;
       text-align: center;
     }
-    .kpi h3 { font-size: 1.68rem; margin-bottom: 0.3rem; }
-    .kpi p { font-size: 2.4rem; font-weight: 600; margin: 0; }
+    .kpi h3 { font-size: 1.34rem; margin-bottom: 0.24rem; }
+    .kpi p { font-size: 1.92rem; font-weight: 600; margin: 0; }
 
     table {
       width: 100%;
-      max-width: 360px;
+      max-width: 288px;
       border-collapse: collapse;
-      margin-bottom: 0.6rem;
+      margin-bottom: 0.48rem;
     }
     table th, table td {
-      font-size: 1.68rem;
-      padding: 0.4rem;
+      font-size: 1.34rem;
+      padding: 0.32rem;
       border-bottom: 1px solid #90caf9;
       text-align: left;
     }
@@ -79,12 +68,12 @@
     #timeline {
       display: flex;
       width: 100%;
-      max-width: 360px;
-      height: 28px;
-      border-radius: 8px;
+      max-width: 288px;
+      height: 22px;
+      border-radius: 6px;
       overflow: hidden;
       cursor: pointer;
-      margin-bottom: 0.6rem;
+      margin-bottom: 0.48rem;
     }
     .segment {
       flex-grow: 1;
@@ -94,10 +83,10 @@
     .segment.stopped { background: #c62828; }
 
     footer {
-      font-size: 1.44rem;
+      font-size: 0.86rem;
       opacity: 0.8;
       text-align: center;
-      margin-top: 0.4rem;
+      margin-top: 0.32rem;
     }
   </style>
 </head>
@@ -105,11 +94,7 @@
 <body>
   <header>
     <h1>ZarrinRoya</h1>
-    <p class="machine-name">C1 / C2 Machine Dashboard</p>
-    <select id="machine-select" onchange="onMachineChange()">
-      <option value="C1">C1 - Baby Diaper Machine</option>
-      <option value="C2">C2 - Machine 2</option>
-    </select>
+    <p class="machine-name">Machines Dashboard</p>
   </header>
 
   <div class="status">
@@ -143,16 +128,11 @@
   </div>
 
   <footer>
-    Process Dev. Team<br>Design by: Hamid Zamani
+    Process Dev. Team<br><span style="font-size: 60%;">Design by: Hamid Zamani</span>
   </footer>
 
   <script>
     let currentMachine = "C1";
-
-    function onMachineChange() {
-      currentMachine = document.getElementById("machine-select").value;
-      updateAll();
-    }
 
     async function fetchData(machine = "C1") {
       const res = await fetch(`/data?machine=${machine}`);
@@ -162,7 +142,6 @@
     async function updateAll() {
       const data = await fetchData(currentMachine);
 
-      // Update numeric fields
       document.getElementById("scrap-value").textContent =
         data.scrapPercentage ? data.scrapPercentage + "%" : "--%";
       document.getElementById("total-products").textContent =
@@ -176,7 +155,6 @@
       const timelineEl = document.getElementById("timeline");
       const speed = data.MachineSpeed ?? 0;
 
-      // Running or stopped indicator
       if (speed > 1) {
         statusEl.textContent = "Running";
         statusEl.className = "running";
@@ -186,18 +164,13 @@
         statusEl.className = "stopped";
         timelineEl.innerHTML = `<div class="segment stopped"></div>`;
       }
-    }
 
-    async function updateOee() {
-      const data = await fetchData(currentMachine);
       document.getElementById("oee-value").textContent =
         data.Online_OEE ? data.Online_OEE + "%" : "--%";
     }
 
     updateAll();
-    updateOee();
-    setInterval(updateAll, 2000);
-    setInterval(updateOee, 20000);
+    setInterval(updateAll, 5000);
   </script>
 </body>
 </html>
